@@ -19,9 +19,15 @@ subject to: cost(stage 1) ≤ €30/mo, runs on 16GB unified memory.
 
 ## Status
 
-**Phase 0 — Research & Architecture.** No influencer has been created yet.
-See `ROADMAP.md` for the full phase plan and `docs/research/stack_research_2026.md`
-for the technology comparison behind every decision below.
+**Phase 1 complete — Identity design.** First influencer, **Sofía**
+(`influencers/sofia_01/`), has a finished Identity Pack + Personality Bible:
+Mediterranean archetype, mahogany wavy hair, honey-hazel eyes, natural toned
+fitness build, light freckles, clean-girl minimalist style, Barcelona-based
+fitness/lifestyle persona. No face has been generated yet — that's Phase 2,
+currently blocked on a cloud-GPU-account decision (money/external account,
+owner's call, not mine to make). See `ROADMAP.md` for the full phase plan and
+`docs/research/stack_research_2026.md` for the technology comparison behind
+every architecture decision.
 
 ## Repo map
 
@@ -38,10 +44,11 @@ ai-influencer-factory/
 ├── CHANGELOG.md                 Chronological log of real changes
 ├── docs/research/               Dated technology research snapshots (sources cited)
 ├── influencers/
-│   └── <CODENAME>/              One folder per influencer (private identity, never shared)
+│   ├── _template/                Blank schema to copy for each new influencer
+│   └── sofia_01/                 First influencer — Sofía, fitness + lifestyle, Barcelona
 │       ├── identity_pack.yaml   Immutable + variable traits (the character's "constitution")
 │       ├── personality_bible.yaml
-│       └── versions/v<N>/       canonical_refs/ · dataset/ · lora/ · consistency_report.md
+│       └── versions/v1/         canonical_refs/ · dataset/ · lora/ (empty until Phase 2+)
 ├── engine/
 │   ├── prompt_engine/           Modular prompt builder (identity+scene+outfit+pose+camera+…)
 │   ├── identity/                Consistency scoring + AI-artifact QA checks

@@ -1,0 +1,90 @@
+# Identity Pack — Sofía (SOFIA_01)
+# Phase 1 output. See IDENTITY_SYSTEM.md §1 for the immutable/variable rationale.
+# Status "draft": this pack is the INPUT to Phase 2 zero-shot exploration, not
+# a locked-down description of an already-generated face. Fine-grained facial
+# geometry stays descriptive/flexible until a canonical image is picked and
+# these traits get visually locked (IDENTITY_SYSTEM.md §2).
+
+codename: "SOFIA_01"
+version: 1
+status: "draft"          # draft -> canonical_selected -> dataset_built -> trained -> validated
+
+# --- Public-facing basics ---
+public_name: "Sofía"
+apparent_age: "24"
+nationality_background: "Española, de Barcelona"
+backstory: >
+  Chica de Barcelona de 24 años que vive el estilo de vida mediterráneo:
+  entrena con regularidad, cuida su alimentación y bienestar, y aprovecha
+  cualquier fin de semana largo para escaparse por Europa. Cercana, sociable
+  y aspiracional sin dejar de ser creíble.
+niche: "fitness + lifestyle"
+
+# --- IMMUTABLE: facial identity ---
+immutable:
+  face_shape: "oval, softly defined"
+  jaw_chin: "soft, rounded jawline, no strong angularity"
+  cheekbones: "subtly defined, soft, natural"
+  eyes:
+    shape: "almond-shaped, medium-set"
+    color: "honey hazel (green-brown)"
+    spacing: "average, balanced"
+  eyebrows: "natural, softly arched, medium thickness, groomed but not over-sculpted"
+  nose: "straight, medium bridge, softly rounded tip"
+  lips: "medium-full, natural cupid's bow, soft definition"
+  skin:
+    base_tone: "olive, warm-medium"
+    undertone: "warm golden"
+    texture_notes: "natural pores and fine texture — not airbrushed"
+  fixed_marks:
+    - "light natural freckles scattered across the nose and upper cheekbones"
+  hands_notes: "natural proportions, average finger length"
+  age_appearance_bracket: "early-to-mid 20s"
+
+  # Short, generation-ready descriptor fragments the prompt engine composes
+  # directly into the BASE IDENTITY prompt module (engine/prompt_engine).
+  descriptor_fragments:
+    - "Mediterranean woman in her mid-20s"
+    - "olive warm skin tone with light natural freckles across nose and cheeks"
+    - "honey hazel eyes, almond-shaped"
+    - "soft oval face, softly arched natural eyebrows"
+    - "straight medium nose, medium-full natural lips"
+    - "long deep mahogany wavy hair"
+    - "natural toned athletic build"
+
+# --- IMMUTABLE: body (canonical body reference, IDENTITY_SYSTEM.md §4) ---
+body:
+  apparent_height_bracket: "168-172cm equivalent"
+  frame: "athletic, naturally toned — visibly active without heavy muscle definition (fitness natural / tonificada)"
+  proportions_notes: "balanced athletic proportions, natural waist-hip ratio, not exaggerated"
+  explicit_non_goals: "not hypersexualized by default, not competition-level physique, not underweight"
+
+# --- VARIABLE: usual styling defaults (overridable per generation) ---
+variable_defaults:
+  hair:
+    color: "deep mahogany / dark auburn (caoba oscuro) — deliberately not bright red or orange"
+    length: "long"
+    usual_style: "loose, natural soft waves"
+  makeup_usual: "clean-girl minimalist — polished dewy skin, soft nude/pink lips, minimal definition, no heavy contour"
+  signature_accessories:
+    - "thin gold hoop earrings"
+    - "delicate fine gold chain necklace"
+  wardrobe_palette:
+    - "white"
+    - "beige"
+    - "cream"
+    - "black basics"
+  nails_usual: "short-to-medium length, natural or nude manicure"
+
+# --- Identity conditioning (filled once canonical refs exist — Phase 2) ---
+generation_conditioning:
+  trigger_token: "sofia01woman"
+  lora_path: "influencers/sofia_01/versions/v1/lora/sofia01_v1.safetensors"    # not yet trained
+  pulid_reference_image: "influencers/sofia_01/versions/v1/canonical_refs/canonical_front.png"  # not yet generated
+  pulid_weight: 0.6
+
+# --- Provenance / ethics (IDENTITY_SYSTEM.md §8) ---
+provenance:
+  based_on_real_person: false
+  reference_photos_of_real_people_used: false
+  notes: "Fully synthetic identity, generated from descriptive traits only. No real person's likeness used as conditioning input."

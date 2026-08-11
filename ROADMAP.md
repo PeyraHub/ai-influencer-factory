@@ -14,17 +14,25 @@ starts. "Definition of Done" (DoD) is objective and checkable.
   - ✅ Repo scaffold + prompt engine code with passing tests
   - ✅ No money spent, no external accounts created yet
 
-## Phase 1 — Identity design
+## Phase 1 — Identity design ✅
 **Goal:** Turn a creative brief into a structured, reusable Identity Pack —
 before generating a single image.
-- Work: fill `influencers/<codename>/identity_pack.yaml` and
-  `personality_bible.yaml` from your creative decisions (grouped questions at
-  the end of this delivery); define immutable vs. variable traits explicitly.
+- Work done: **Sofía (`SOFIA_01`)** — 24, española, Barcelona, fitness +
+  lifestyle mediterráneo. Mediterranean archetype, deep mahogany wavy hair,
+  honey-hazel eyes, natural toned fitness build, light freckles across
+  nose/cheekbones as the fixed distinctive mark, clean-girl minimalist style
+  (makeup/wardrobe palette/accessories). Full trait set in
+  `influencers/sofia_01/identity_pack.yaml`; voice/interests/boundaries in
+  `influencers/sofia_01/personality_bible.yaml`.
 - DoD:
-  - Identity Pack complete (all required fields in the template filled)
-  - Personality Bible complete
-  - Codename + version (`v1`) assigned, folder created
-  - Zero images generated yet (this phase is pure specification)
+  - ✅ Identity Pack complete (all required fields filled; immutable facial/body
+    traits separated from variable styling defaults per `IDENTITY_SYSTEM.md` §1)
+  - ✅ Personality Bible complete
+  - ✅ Codename `SOFIA_01`, version `v1` assigned, `influencers/sofia_01/` created
+  - ✅ Zero images generated yet — this phase was pure specification
+  - Fine facial geometry (exact face/nose/lip shape wording) is deliberately
+    descriptive, not pixel-locked — it gets visually locked once a canonical
+    image is chosen in Phase 2, per `IDENTITY_SYSTEM.md` §2
 
 ## Phase 2 — Canonical character (face selection)
 **Goal:** Pick ONE face and lock it as the ground truth, using cheap zero-shot
@@ -126,6 +134,8 @@ multiplying manual work.
 
 ## Next execution
 
-**Phase 1 starts as soon as you answer the grouped questions at the end of
-this delivery** (character concept + the one external-account/money decision
-for cloud GPU access). Everything else in Phase 0 is done and pushed.
+**Phase 1 is done.** Phase 2 (canonical face selection for Sofía, zero-shot
+exploration) is specified in `IDENTITY_SYSTEM.md` §2 and ready to execute,
+but is blocked on one real decision: which cloud GPU/serverless account(s)
+to create (RunPod and/or fal.ai/Replicate) — a money + external-account
+decision, the owner's call, not something to proceed on unilaterally.

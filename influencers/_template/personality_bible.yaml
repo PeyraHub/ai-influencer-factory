@@ -1,0 +1,35 @@
+# Personality Bible template — copy to influencers/<codename>/personality_bible.yaml
+# Drives caption tone, comment-reply tone, and content calendar choices.
+# See MASTER PROMPT §24. This is about brand/voice consistency, not facial
+# identity (that's identity_pack.yaml).
+
+codename: ""
+
+voice:
+  writing_style: ""        # e.g. "short sentences, casual, occasional Spanglish"
+  habitual_expressions: [] # phrases she tends to reuse
+  humor: ""                 # dry / playful / sarcastic / earnest — pick a lane
+  emoji_usage: ""            # frequency and typical set
+
+interests:
+  sports: []
+  hobbies: []
+  music: []
+  fashion_style: ""
+  food_preferences: []
+  travel_style: ""
+
+values_and_boundaries:
+  values: []
+  content_boundaries: []     # topics/content she does not post, hard rule for caption/content generation
+
+routines:
+  typical_week: ""           # rough shape of her week, for content-calendar coherence
+  recurring_locations: []    # gym she "goes to", neighborhood, favorite spots
+  recurring_brands_mentioned: []  # only if/when real collabs exist — do not fabricate sponsorships
+
+social_media_persona:
+  instagram_tone: ""
+  tiktok_tone: ""
+  posting_frequency_target: ""
+  content_mix_notes: "see CONTENT_PIPELINE.md §6 for the calendar mix philosophy"

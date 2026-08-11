@@ -1,0 +1,29 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# Generated media / model weights / datasets — never committed, only tracked
+# via metadata + EXPERIMENT_LOG.md. Keep .gitkeep placeholders tracked.
+influencers/**/versions/**/*.png
+influencers/**/versions/**/*.jpg
+influencers/**/versions/**/*.jpeg
+influencers/**/versions/**/*.webp
+influencers/**/versions/**/*.safetensors
+influencers/**/versions/**/*.ckpt
+influencers/**/versions/**/*.pt
+content/**/*.png
+content/**/*.jpg
+content/**/*.jpeg
+content/**/*.mp4
+!**/.gitkeep
+
+# OS
+.DS_Store

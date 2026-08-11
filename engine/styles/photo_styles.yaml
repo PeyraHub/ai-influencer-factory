@@ -1,0 +1,51 @@
+# Reusable photography style library — see CONTENT_PIPELINE.md §2 for the
+# rationale table. Each key is looked up by engine/prompt_engine/modules.py.
+# Keep fragments short and composable — they're concatenated into one prompt.
+
+iphone_selfie:
+  camera_fragment: "shot on iPhone front camera, close arm's-length framing, slight wide-angle distortion"
+  lighting_fragment: "available ambient light, natural indoor or outdoor light"
+
+mirror_selfie:
+  camera_fragment: "shot on phone rear camera reflected in a mirror, phone visible in reflection, half or full body framing"
+  lighting_fragment: "bathroom or gym ambient lighting"
+
+gym_photo:
+  camera_fragment: "casual phone photo angle, mid-activity, half body framing"
+  lighting_fragment: "harsh gym fluorescent and mixed artificial lighting, slight sweat sheen"
+
+boyfriend_pov:
+  camera_fragment: "candid phone photo, subject caught mid-motion or looking away, imperfect off-center framing"
+  lighting_fragment: "natural outdoor or indoor available light"
+
+professional_campaign:
+  camera_fragment: "shot on mirrorless camera, 50-85mm equivalent lens, shallow depth of field, controlled composition"
+  lighting_fragment: "soft key light with fill, studio or styled-location lighting setup"
+
+paparazzi:
+  camera_fragment: "telephoto compression, slight grain, candid mid-motion framing"
+  lighting_fragment: "mixed harsh available light, slight out-of-focus areas"
+
+nightlife:
+  camera_fragment: "close to mid-range phone or compact camera framing, flash-lit"
+  lighting_fragment: "direct on-camera flash mixed with ambient neon or bar lighting, flash noise"
+
+restaurant:
+  camera_fragment: "phone camera at table level, half body or table context framing"
+  lighting_fragment: "warm indoor ambient restaurant lighting"
+
+travel:
+  camera_fragment: "phone or compact camera, wide landscape context, full body in environment"
+  lighting_fragment: "golden hour or daylight, natural outdoor light"
+
+beach:
+  camera_fragment: "phone camera, bright daylight, full or half body framing"
+  lighting_fragment: "strong direct sun, hard shadows, water reflections"
+
+home_morning:
+  camera_fragment: "phone camera, casual close or half body framing"
+  lighting_fragment: "soft window light, cozy unstyled morning light"
+
+story_photo:
+  camera_fragment: "phone camera, vertical casual framing, low production value"
+  lighting_fragment: "whatever ambient light is available in the scene"

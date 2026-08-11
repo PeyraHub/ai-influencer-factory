@@ -1,0 +1,27 @@
+# Reusable location library — see CONTENT_PIPELINE.md §4. Keeps "she's in
+# Barcelona" visually coherent across many independent generations instead
+# of relying on remembering the right descriptors each time.
+
+barcelona:
+  visual_descriptors: "Mediterranean coastal light, modernist and narrow old-town architecture, terracotta and warm stone tones"
+
+ibiza:
+  visual_descriptors: "whitewashed buildings, dry Mediterranean landscape, turquoise coastal water, golden sunset light"
+
+madrid:
+  visual_descriptors: "grand European boulevards, classical stone architecture, warm continental daylight"
+
+paris:
+  visual_descriptors: "Haussmannian architecture, wrought-iron balconies, soft overcast or golden evening light"
+
+london:
+  visual_descriptors: "brick and stone townhouses, overcast diffused light, red accents, damp pavement sheen"
+
+bali:
+  visual_descriptors: "tropical dense greenery, rice terraces or beach setting, warm golden humid light"
+
+new_york:
+  visual_descriptors: "dense vertical skyline, yellow cabs, cooler urban light, concrete and steel textures"
+
+los_angeles:
+  visual_descriptors: "palm trees, wide sunlit boulevards, warm golden-hour light, low-rise sprawl"

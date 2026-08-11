@@ -1,0 +1,75 @@
+# Identity Pack template — copy to influencers/<codename>/identity_pack.yaml
+# See IDENTITY_SYSTEM.md §1 for the full rationale behind every field.
+#
+# IMMUTABLE fields define who this person IS — trained into the LoRA,
+# referenced on every single generation, never allowed to drift between
+# versions without a deliberate version bump.
+#
+# VARIABLE fields define how she usually looks TODAY — controlled per
+# generation by the prompt engine, safe to override per post.
+
+codename: ""            # internal project codename, e.g. "AITWIN_01" — never posted publicly
+version: 1               # bump on any retraining (identity v2, lora v2, dataset v2, ...)
+status: "draft"          # draft -> canonical_selected -> dataset_built -> trained -> validated
+
+# --- Public-facing basics (used for captions/bio/personality, not generation) ---
+public_name: ""
+apparent_age: ""          # e.g. "late 20s" — bracket, not an exact number
+nationality_background: ""
+backstory: ""              # 2-3 sentences max — enough for tone, not a novel
+niche: "fitness + lifestyle"
+
+# --- IMMUTABLE: facial identity ---
+immutable:
+  face_shape: ""
+  jaw_chin: ""
+  cheekbones: ""
+  eyes:
+    shape: ""
+    color: ""
+    spacing: ""
+  eyebrows: ""
+  nose: ""
+  lips: ""
+  skin:
+    base_tone: ""
+    undertone: ""
+    texture_notes: "natural pores and fine texture — not airbrushed"
+  fixed_marks: []          # e.g. "small mole above left lip corner" — strong identity anchors, keep short list
+  hands_notes: ""
+  age_appearance_bracket: ""
+
+  # Short, generation-ready descriptor fragments the prompt engine composes
+  # directly into the BASE IDENTITY prompt module. Keep terse.
+  descriptor_fragments: []
+
+# --- IMMUTABLE: body (canonical body reference, IDENTITY_SYSTEM.md §4) ---
+body:
+  apparent_height_bracket: ""     # e.g. "170-173cm equivalent"
+  frame: "athletic, natural muscle tone — visibly active, not exaggerated"
+  proportions_notes: ""
+  explicit_non_goals: "not hypersexualized by default, not competition-level physique, not underweight"
+
+# --- VARIABLE: usual styling defaults (overridable per generation) ---
+variable_defaults:
+  hair:
+    color: ""
+    length: ""
+    usual_style: ""
+  makeup_usual: ""
+  signature_accessories: []      # recurring items, e.g. "thin gold hoop earrings"
+  wardrobe_palette: []           # recurring color palette, not a fixed outfit
+  nails_usual: ""
+
+# --- Identity conditioning (Phase 2+, filled once canonical refs exist) ---
+generation_conditioning:
+  trigger_token: ""              # LoRA trigger word/token
+  lora_path: ""                  # influencers/<codename>/versions/vN/lora/...
+  pulid_reference_image: ""      # canonical_refs/canonical_front.png
+  pulid_weight: 0.6              # tune during Phase 5 validation
+
+# --- Provenance / ethics (IDENTITY_SYSTEM.md §8) ---
+provenance:
+  based_on_real_person: false
+  reference_photos_of_real_people_used: false
+  notes: "Fully synthetic identity, generated from descriptive traits only."

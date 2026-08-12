@@ -1,0 +1,18 @@
+# Manual sub-scores for the Identity Consistency Score (IDENTITY_SYSTEM.md §6).
+# Fill in AFTER visually reviewing the 15-shot Consistency Test set against
+# the canonical reference. Each is 0-100. See IDENTITY_SYSTEM.md §6 for what
+# each one means — these three are deliberately NOT automated.
+
+# Do the full-body shots keep the canonical body reference (IDENTITY_SYSTEM.md §4)?
+# 100 = no visible drift across any full-body shot, 0 = drastically different build.
+body_proportion_score: 0
+
+# Is the fixed distinctive mark (e.g. freckle pattern) present and in the
+# right place across shots where it should be visible?
+# 100 = consistently present/correct, 0 = absent or wrong in most shots.
+distinctive_feature_score: 0
+
+# Side-by-side with the canonical reference, does it still read as obviously
+# the same person across all 15 shots? Average your per-image gut-check
+# (0 / 50 / 100 each) across all 15.
+human_review_score: 0

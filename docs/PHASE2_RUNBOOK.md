@@ -7,19 +7,23 @@ the one real blocker (a funded fal.ai account) is cleared, execution takes
 minutes, not another research pass. See `IDENTITY_SYSTEM.md` §2 for the
 underlying design rationale — this document is the "just run it" version.
 
-## Why fal.ai, and why not train/condition anything yet
+## Why fal.ai, and why not assume training is needed
 
 At Phase 2 there is no reference face to condition on — the goal *is* to
-create the first one. So this phase is **plain text-to-image**, not
-identity-conditioned generation:
+create the first one. So this phase starts with **plain text-to-image**, not
+identity-conditioned generation, and — critically — **does not assume LoRA
+training is the destination**. Per `IDENTITY_SYSTEM.md` §2a (Progressive
+Identity Complexity Ladder), the plan is:
 
 1. Generate a wide batch of candidate faces from `identity_pack.yaml`'s
-   `descriptor_fragments` alone (no LoRA, no PuLID — those need an existing
-   face to lock onto, which doesn't exist yet).
+   `descriptor_fragments` alone (no conditioning — no face exists yet).
 2. Human picks the best candidate(s) — genuinely subjective, the owner's call.
-3. **Only then** does PuLID-Flux-II get used — conditioned on the *chosen*
-   candidate, to confirm that exact face survives angle/expression changes
-   (frontal/3-4/profile/smile/neutral) before any training investment.
+3. Cheap variation check on the shortlist, then pick ONE final candidate.
+4. Run the **full 15-shot Character Consistency Test** on that one candidate
+   using zero-shot conditioning only (Tier 1 — no dataset, no training).
+5. **Score it.** If it clears 80/100, that's the production identity method,
+   done — Phases 3/4 (dataset + LoRA training) never happen. Only escalate
+   to Tier 2 if the measured score says Tier 1 wasn't enough.
 
 fal.ai is the pick over RunPod for this phase specifically because it's
 serverless (pay per image, zero idle cost, zero pod setup) and this phase is
@@ -32,8 +36,10 @@ low-volume, high-iteration — exactly what serverless is for
 - Create a fal.ai account at fal.ai, attach a payment method.
 - Generate an API key from the fal.ai dashboard.
 - Put it in `.env` (never commit): `FAL_API_KEY=...`
-- Estimated spend for all of Phase 2 (steps 2–4 below): **€2–4 total**
-  (COSTS.md Phase 2/Phase 3 estimates), comfortably inside the €0–30/mo budget.
+- Estimated spend through a full Tier 1 attempt (steps 2–7 below, candidate
+  sweep + shortlist checks + full 15-shot test): **~€2–3 total** — and if
+  Tier 1 clears the gate, that's the *entire* identity cost, no training
+  spend at all. Comfortably inside the €0–30/mo budget either way.
 
 ### 2. Wide candidate sweep (already scripted — `scripts/generate_candidates.py`)
 ```bash
@@ -58,43 +64,76 @@ python scripts/generate_candidates.py --identity influencers/sofia_01/identity_p
   actually want as the face of the brand.
 - No tooling needed for this step beyond looking at the images.
 
-### 4. Controlled variations per shortlisted candidate (PuLID-Flux-II)
+### 4. Cheap shortlist check (already scripted — `scripts/generate_variations.py`)
 ```bash
 python scripts/generate_variations.py --identity influencers/sofia_01/identity_pack.yaml \
     --reference influencers/sofia_01/versions/v1/candidates/<chosen_file>.png \
-    --variations frontal,three_quarter,profile,smile,neutral
+    --shots selfie,professional,smiling
 ```
-- *(This script is the next one to write — deliberately not built in this
-  pass, since it's only needed once step 3 has actually produced a shortlist;
-  building it earlier would be exactly the premature-infrastructure pattern
-  `CLAUDE.md` §5 warns against.)*
-- For each of the 3–5 shortlisted candidates, generates the controlled
-  variation set — checks the face survives angle/expression changes
-  zero-shot, per `IDENTITY_SYSTEM.md` §2, before any LoRA training spend.
+- Run once per shortlisted candidate (3–5 times, ~€0.09 each — trivial).
+- Uses `fal-ai/flux-pulid` (zero-shot identity conditioning, no training) to
+  check the face survives 3 quick angle/expression changes before spending
+  on the full test. Eliminates obviously-weak candidates cheaply.
 
 ### 5. Final pick + canonical refs
-- Pick ONE final candidate whose variations hold up.
+- Pick ONE final candidate whose quick variations hold up (your call).
 - Copy/rename its images into
   `influencers/sofia_01/versions/v1/canonical_refs/` following the naming in
-  `IDENTITY_SYSTEM.md` §2 (`canonical_front.png` + 3/4, profile, smile,
-  neutral, close-up, full-body, 2 lighting setups).
+  `IDENTITY_SYSTEM.md` §2 (`canonical_front.png` at minimum).
 - Update `influencers/sofia_01/identity_pack.yaml`:
   `status: "canonical_selected"`, confirm `generation_conditioning.pulid_reference_image`
   points at the real file.
 
-### 6. Log it
-- Add an entry to `experiments/EXPERIMENT_LOG.md` for the sweep and for the
-  variation runs — config, seeds, cost, result — using this phase's criteria:
-  - **Success criterion:** at least one of the candidates clearly matches the
-    Identity Pack description and is genuinely appealing/on-brand to the owner.
-  - **Kill criterion:** zero acceptable candidates after 60 total generations
-    across 2 different prompt phrasings — stop and revise
-    `descriptor_fragments` wording before generating more blindly, don't just
-    keep spending on volume.
+### 6. Full 15-shot Consistency Test — Tier 1 attempt (`scripts/generate_variations.py --shots all`)
+```bash
+python scripts/generate_variations.py --identity influencers/sofia_01/identity_pack.yaml \
+    --reference influencers/sofia_01/versions/v1/canonical_refs/canonical_front.png \
+    --shots all \
+    --out-dir influencers/sofia_01/versions/v1/consistency_test
+```
+- Generates all 15 conditions from `IDENTITY_SYSTEM.md` §6, ~€0.45 total,
+  still zero-shot, still no training.
+- Also manually review these 15 images against the AI-Artifact QA checklist
+  (`IDENTITY_SYSTEM.md` §7) — the Consistency Score alone isn't the whole gate.
+
+### 7. Score it (`scripts/score_consistency.py`)
+```bash
+cp influencers/_template/manual_consistency_scores.yaml \
+   influencers/sofia_01/versions/v1/manual_consistency_scores.yaml
+# ...fill in the 3 manual sub-scores after reviewing the 15 shots...
+pip install -e ".[identity]"     # adds insightface, only needed for this step
+python scripts/score_consistency.py \
+    --shots-dir influencers/sofia_01/versions/v1/consistency_test \
+    --canonical-ref influencers/sofia_01/versions/v1/canonical_refs/canonical_front.png \
+    --manual-scores influencers/sofia_01/versions/v1/manual_consistency_scores.yaml \
+    --tier 1
+```
+- Prints and writes `consistency_report.md` with the final 0–100 score.
+- **Score ≥ 80 → identity locked at Tier 1.** Skip Phases 3/4 entirely,
+  go straight to Phase 6 (production pipeline) using this same zero-shot
+  conditioning. This is the outcome to hope for — it's strictly less work.
+- **Score < 80 → escalate to Tier 2**: build the dataset (Phase 3,
+  `IDENTITY_SYSTEM.md` §3) and train a LoRA (Phase 4, §5), then re-run steps
+  6–7 with the trained identity conditioning instead.
+
+### 8. Log it
+- Add entries to `experiments/EXPERIMENT_LOG.md` for the candidate sweep, the
+  shortlist checks, and the scored Consistency Test — config, seeds, cost,
+  score, tier, result — using these criteria:
+  - **Success criterion (candidate sweep):** at least one candidate clearly
+    matches the Identity Pack description and is genuinely appealing/on-brand.
+  - **Kill criterion (candidate sweep):** zero acceptable candidates after 60
+    total generations across 2 prompt phrasings — revise `descriptor_fragments`
+    wording before generating more blindly.
+  - **Success criterion (Tier 1 consistency test):** score ≥ 80/100.
+  - **Kill criterion (Tier 1):** none — a fail here isn't a dead end, it's the
+    signal to escalate to Tier 2, which is exactly what the ladder is for.
 
 ## What happens after this runbook
 
-Phase 3 (dataset) and Phase 4 (LoRA training) follow directly from the
-canonical refs this produces — both already fully specified in
-`IDENTITY_SYSTEM.md` §3–§5, no further planning needed, just execution once
-Phase 2's canonical face is locked.
+If Tier 1 passes: Phase 6 (production pipeline) starts directly — no dataset,
+no training. If Tier 1 doesn't clear the gate: Phase 3 (dataset) and Phase 4
+(LoRA training) are already fully specified in `IDENTITY_SYSTEM.md` §3–§5,
+followed by re-running steps 6–7 above with the trained identity. Either way,
+Phase 5's gate (`IDENTITY_SYSTEM.md` §6) is what decides — not an assumption
+made here.

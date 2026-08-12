@@ -6,28 +6,62 @@ once and abandoned. See `REVENUE_MODEL.md` for the money model this plan
 feeds, and `WEEKLY_OPS.md` for the recurring execution rhythm this plan
 hands off to after Day 30.
 
-## MVP — what "launched" actually requires
+## Launch Gate — objective minimum to ship, not a perfection target
 
-Everything else is explicitly **SHOULD HAVE AFTER VALIDATION** or
-**SCALE LATER** (`CLAUDE.md` §5) until these ten are true:
+This is the single authoritative "can we launch Sofía" checklist —
+`IDENTITY_SYSTEM.md` and `ROADMAP.md` reference it rather than restating it,
+so there's one gate, not several drifting copies. Every item is objectively
+checkable (pass/fail), on purpose — no item on this list is "make it as good
+as possible," because that's how launches slip. Once every item is a ✅, we
+launch — continuing to iterate past this bar before going public is exactly
+the over-engineering `CLAUDE.md` §5/§5a exists to prevent.
 
-| # | MUST HAVE BEFORE LAUNCH | Status source |
-|---|---|---|
-| 1 | Excellent canonical identity (one locked face, chosen from real candidates, not just described) | `IDENTITY_SYSTEM.md` §2, Phase 2 |
-| 2 | Sufficient facial consistency (Identity Consistency Score ≥ 80) | `IDENTITY_SYSTEM.md` §6, Phase 5 gate |
-| 3 | Sufficient body consistency (canonical body reference holds across shots) | `IDENTITY_SYSTEM.md` §4 |
-| 4 | Reproducible pipeline (prompt engine + styles/locations wired, not one-off hand-crafted images) | `CONTENT_PIPELINE.md`, Phase 6 |
-| 5 | 20–40 publishable images (passed AI-Artifact QA + identity score) | Phase 6 output |
-| 6 | Initial content library covering the launch sequence below (§Launch sequencing) | this doc |
-| 7 | Social profiles set up (Instagram + TikTok, bio, AI-disclosure where required) | Phase 9, pulled forward for account creation only |
-| 8 | Publishing strategy (what goes out, in what order — §Launch sequencing) | this doc |
-| 9 | Launch calendar (Day 0–30 schedule, below) | this doc |
-| 10 | Basic system to learn from metrics (even a manual spreadsheet counts at MVP stage) | `WEEKLY_OPS.md` §Measure |
+| # | Launch Gate criterion | Objective pass condition | Status source |
+|---|---|---|---|
+| 1 | Canonical identity locked | One chosen candidate face, selected from real generated candidates (not just described in text) | `IDENTITY_SYSTEM.md` §2, Phase 2 |
+| 2 | Facial consistency sufficient | Identity Consistency Score **≥ 80/100**, achieved at whichever tier of the Progressive Identity Complexity Ladder actually clears it — Tier 1 zero-shot is enough if it scores ≥80, no LoRA required just because it exists as an option | `IDENTITY_SYSTEM.md` §2a, §6 |
+| 3 | Body consistency sufficient | Canonical body reference (`IDENTITY_SYSTEM.md` §4) holds across all full-body shots in the launch set — manual pass/fail, no drastic proportion drift | `IDENTITY_SYSTEM.md` §4 |
+| 4 | Reproducible pipeline | Prompt engine + at least the photo styles actually used in the launch set are wired and produce images without one-off manual prompt hacking | `CONTENT_PIPELINE.md`, Phase 6 |
+| 5 | Launch asset count | **20–30 images**, each individually passing the full AI-Artifact QA checklist (`IDENTITY_SYSTEM.md` §7) — zero exceptions on QA, but explicitly no requirement beyond this count | Phase 6 output |
+| 6 | Launch set variety | The 20–30 images span **at least 5 distinct photo styles** (`CONTENT_PIPELINE.md` §2) and cover all 5 beats of §Launch sequencing below — prevents a repetitive-looking grid without requiring exhaustive coverage | this doc |
+| 7 | Instagram ready | Handle reserved, bio written, AI-disclosure language set per current policy | Phase 9, pulled forward |
+| 8 | AI-disclosure compliance checked | Current Instagram/Fanvue policy re-verified (not assumed from `docs/research/`) at the moment of setup | `IDENTITY_SYSTEM.md` §8 |
+| 9 | Launch sequence assembled | The first 9–12 grid posts ordered per §Launch sequencing, ready to publish on the Day 7–14 cadence | this doc |
+| 10 | Minimum metrics tracking | A place to log Day-1 metrics exists (even `WEEKLY_OPS.md`'s manual template) | `WEEKLY_OPS.md` §Measure |
 
-Items 1–5 are technical and gated by `IDENTITY_SYSTEM.md` — never shipped
-early. Items 6–10 are this document, and can be *designed* now even before
-1–5 are done, so launch happens the moment the technical gate clears instead
-of starting the commercial design afterward.
+**Explicitly NOT required to launch** (would-be scope creep, deferred by
+design): TikTok live on Day 0 (can follow within the first post-launch week
+without blocking Instagram launch); LoRA training if Tier 1 zero-shot already
+cleared the gate; automated QA (Phase 7); full content-engine automation
+(Phase 8); automated publishing (Phase 9 automation — manual publish is
+fine); automated analytics (Phase 10); video (Phase 11); Influencer #2
+(Phase 12); more than 20–30 launch images; an Identity Consistency Score
+above 80 "to be safe" — 80 is the real bar, not a floor to clear by a
+comfortable margin before feeling ready.
+
+## Launch target — aggressive but realistic
+
+Two paths, depending on which tier of the Identity Complexity Ladder
+(`IDENTITY_SYSTEM.md` §2a) actually clears the gate — stated as a range
+because which path applies is an empirical outcome, not a choice:
+
+- **Optimistic path** (Tier 1 zero-shot clears 80/100 — no dataset/training
+  needed): Launch Gate items 1–6 achievable in **~4–5 days** of active
+  execution from the moment the fal.ai account is funded (candidate sweep:
+  ~1 day; shortlist + zero-shot variations + Consistency Test: ~1–2 days;
+  20–30 launch images via Phase 6: ~1–2 days). Adding the Day 0–7 grid
+  pre-load and Instagram setup (items 7–10): **public launch ~10–14 days**
+  from execution resuming.
+- **Conservative path** (Tier 1 insufficient, Tier 2 LoRA needed): add
+  dataset construction (~1 day) + training + checkpoint comparison (~1–2
+  days) + re-running the Consistency Test (~1 day) on top of the optimistic
+  path: **public launch ~18–21 days** from execution resuming.
+
+Both ranges assume: the fal.ai (and RunPod, if Tier 2 is needed) accounts
+are funded without further delay, owner review/selection turnaround (picking
+the canonical face, approving the launch set) doesn't stall for days at a
+time, and no legal/platform blocker appears. These are planning ranges, not
+commitments — `CLAUDE.md` §1: ambitious target, not a guaranteed forecast.
 
 ## Day-by-day plan
 

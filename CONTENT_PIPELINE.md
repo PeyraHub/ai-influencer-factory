@@ -22,7 +22,10 @@ REALISM         ← fixed boilerplate fragment: film grain / natural skin textur
 NEGATIVE        ← fixed "avoid" fragment: plastic skin, extra fingers, warped
                   anatomy, text artifacts, etc. — mirrors the QA checklist so
                   we're steering away from exactly what QA checks for
-IDENTITY CONTROL← LoRA reference + PuLID reference image + weight settings
+IDENTITY CONTROL← PuLID reference image + weight settings, plus a LoRA
+                  reference IF ONE EXISTS — see IDENTITY_SYSTEM.md §2a: at
+                  Tier 1, lora_path stays empty on purpose, zero-shot
+                  conditioning alone is the production method
 ```
 
 `build_prompt(identity_pack, scene, outfit, pose, style, location)` composes

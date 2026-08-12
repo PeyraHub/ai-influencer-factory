@@ -100,11 +100,31 @@ Every phase/feature gets bucketed before being built:
   influencers, complex analytics)
 
 See `ROADMAP.md` for the phase-by-phase bucketing and `docs/business/GO_TO_MARKET.md`
-§MVP for the concrete launch checklist. When a new feature is proposed,
+§Launch Gate for the concrete, objective launch checklist. When a new feature is proposed,
 justify it as `Expected Impact / Time / Cost` against: quality, launch
 speed, growth, monetization, manual-work reduction (in that priority order).
 A feature that takes 5 days and doesn't clearly serve one of those does not
 get built yet.
+
+## 5a. Identity method: escalate complexity only when measured insufficient
+
+This applies the same MVP discipline specifically to the identity pipeline,
+because it's the single place most tempting to over-engineer up front.
+**Never presume a specific technical path (e.g. "we'll train a LoRA") is
+required before measuring whether a cheaper one already clears the bar.**
+
+Rule: start at the cheapest/simplest identity method available, measure it
+against the real Identity Consistency Score gate (`IDENTITY_SYSTEM.md` §6,
+80/100), and only add the next tier of complexity if the measurement — not
+an assumption — shows it's needed. See `IDENTITY_SYSTEM.md` §2 "Progressive
+Identity Complexity Ladder" for the current tiers (zero-shot conditioning
+first, LoRA training only if zero-shot doesn't clear the gate, further
+stacking only if LoRA alone doesn't either). Re-evaluate which tier is
+cheapest/best at each execution pass — this field moves fast and last
+quarter's "best default" may not be this quarter's.
+
+This does not weaken the gate itself (§2 non-negotiables) — it changes *how
+we get there*, never *whether we check*.
 
 ## 6. Budget
 
@@ -127,8 +147,10 @@ underperformed out of attachment to it.
 ## 8. Where things live
 
 - Technical architecture & decisions: `ARCHITECTURE.md`
-- Phase plan + Definition of Done: `ROADMAP.md`
-- Identity system (the character's "constitution"): `IDENTITY_SYSTEM.md`
+- Phase plan + Definition of Done + **Launch Gate** (the objective
+  good-enough-to-ship bar — don't keep polishing past it): `ROADMAP.md`
+- Identity system (the character's "constitution") + Progressive Identity
+  Complexity Ladder: `IDENTITY_SYSTEM.md`
 - Content/prompt pipeline: `CONTENT_PIPELINE.md`
 - Budget, unit economics, reinvestment policy: `COSTS.md`
 - Commercial plan (GTM, revenue model, weekly ops, north star metrics):

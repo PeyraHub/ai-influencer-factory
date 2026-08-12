@@ -2,6 +2,43 @@
 
 All notable changes to this project. Dated, reverse-chronological.
 
+## 2026-08-12 — Progressive Identity Complexity Ladder + Launch Gate
+
+- Removed the standing assumption that identity consistency requires LoRA
+  training by default. `IDENTITY_SYSTEM.md` §2/§2a now define a **Progressive
+  Identity Complexity Ladder**: Tier 1 (zero-shot PuLID conditioning, no
+  training) is always tried first and measured against the real 80/100
+  Identity Consistency Score gate; Tier 2 (LoRA training) only happens if
+  Tier 1 measurably falls short; Tier 3 (stacked methods) only if Tier 2
+  isn't enough either. `ARCHITECTURE.md` §2.2/§2.6 and `CLAUDE.md` §5a
+  updated to match — this is now a permanent operating rule, not a one-off
+  decision.
+- `ROADMAP.md` Phases 3–4 (dataset, LoRA training) are now tagged
+  **[CONDITIONAL]**, only reached if Phase 5's Tier 1 attempt (run
+  immediately after Phase 2, before any dataset/training work) scores below
+  80/100. `COSTS.md` Stage 1 breakdown split into optimistic (~€3–8, Tier 1
+  sufficient) vs. conservative (~€5–15, Tier 2 needed) totals.
+- Defined the **Launch Gate** (`docs/business/GO_TO_MARKET.md`): a single,
+  objective, checkable list replacing the looser "MVP" framing — 10 pass/fail
+  criteria plus an explicit "NOT required to launch" list (no LoRA if Tier 1
+  passed, no automation, no TikTok Day 0, no perfectionism past 80/100).
+  Every other doc references this one list instead of restating it.
+- Set an aggressive-but-realistic **launch target**: ~10–14 days from
+  execution resuming if Tier 1 clears the gate, ~18–21 days if Tier 2/LoRA
+  is needed — stated as a range tied to the (empirical) tier outcome, not a
+  promise.
+- Built the two scripts this new sequence actually needs next, both tested:
+  `scripts/generate_variations.py` (zero-shot PuLID-conditioned generation —
+  cheap shortlist checks and the full 15-shot Consistency Test, same script)
+  and `scripts/score_consistency.py` (combines the automated FaceEmbeddingScore
+  with the three manually-reviewed sub-scores into the final gate decision).
+  Added `influencers/_template/manual_consistency_scores.yaml`. 39 passing tests.
+- Updated `docs/PHASE2_RUNBOOK.md` end-to-end to the new step sequence:
+  candidates → shortlist check → pick one → full Tier 1 consistency test →
+  score → escalate only if needed.
+- Still zero images generated, zero money spent. Same single real blocker:
+  funding a fal.ai account.
+
 ## 2026-08-12 — Execution mode: permanent operating rules + commercial plan + Phase 2 runbook
 
 - Added `CLAUDE.md`: permanent, session-surviving operating rules —

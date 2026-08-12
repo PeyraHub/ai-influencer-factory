@@ -60,26 +60,54 @@ they're about brand/style consistency, not facial identity.
 
 ```
 concept (Identity Pack draft, Phase 1)
-   → zero-shot exploration: 30–60 candidate faces via PuLID-Flux-II/InstantID,
-     no training, cheap, serverless (Phase 2)
-   → shortlist 3–5 candidates, generate each in 4 controlled variations
-     (frontal / 3-4 / profile, neutral / smile) to check the face survives
-     angle changes even before training
+   → zero-shot candidate sweep: 30–60 plain text-to-image candidate faces,
+     no conditioning yet (there's no reference to condition on), cheap,
+     serverless (Phase 2, scripts/generate_candidates.py)
+   → shortlist 3–5 candidates, generate each in a few controlled variations
+     (frontal / 3-4 / profile, neutral / smile) using zero-shot identity
+     conditioning (PuLID-Flux/InstantID) on that specific candidate
    → pick ONE canonical identity (your call — this is subjective and about
      the character, so it's a decision for you, not for me to make alone)
-   → canonical reference set generated from the chosen seed/conditioning:
-     frontal, 3/4, profile, smiling, neutral, close-up, full-body, 2 lighting
-     setups (soft/hard) — all still zero-shot, still cheap
-   → dataset expansion from these canonical refs (Phase 3, §3)
-   → dataset cleaning/scoring (§3)
-   → LoRA training (Phase 4, §5)
-   → Consistency Test + Identity Consistency Score (Phase 5, §6) — gate
+   → canonical reference set generated from the chosen candidate: frontal,
+     3/4, profile, smiling, neutral, close-up, full-body, 2 lighting setups
+     (soft/hard) — still zero-shot, still cheap
+   → run the FULL Character Consistency Test (§6) immediately, using
+     zero-shot conditioning only — this is Tier 1 of the complexity ladder
+     below, attempted BEFORE building a dataset or training anything
+   → IF the score clears 80/100: identity is locked, skip straight to
+     Phase 6 (production pipeline) — no dataset, no training, no LoRA
+   → IF it doesn't: escalate to Tier 2 — dataset (Phase 3, §3) → LoRA
+     training (Phase 4, §5) → re-run the same Consistency Test (§6)
 ```
 
-This avoids the classic failure mode named in the brief: training on 50
-incoherent images of a person who doesn't visually exist yet. We lock a face
-*first*, cheaply, and only invest in training once that face has already
-proven it survives basic angle/expression changes zero-shot.
+This avoids two failure modes at once: training on 50 incoherent images of a
+person who doesn't visually exist yet (we lock a face first, cheaply), *and*
+building a whole dataset+training pipeline before confirming it's actually
+needed (see §2a).
+
+## 2a. Progressive Identity Complexity Ladder
+
+**Never assume the identity method has to be zero-shot → PuLID → LoRA.**
+That was this document's original default; it is now explicitly a fallback,
+not a starting assumption. The rule: start at the cheapest tier, measure
+against the real gate (§6, 80/100), escalate only if the measurement says
+so. Skipping straight to LoRA training "because it's the more sophisticated
+option" is exactly the over-engineering `CLAUDE.md` §5a exists to prevent —
+it costs a dataset-building pass and a training run for a benefit that may
+not exist if a cheaper tier already clears the bar.
+
+| Tier | Method | Cost | When |
+|---|---|---|---|
+| **1 — Zero-shot conditioning** | PuLID-Flux-II (or InstantID / current best equivalent — re-check what's actually best at execution time, this moves fast) conditioned on the single canonical reference image, no training | ~€1–3 for a full 15-shot test battery | **Always tried first.** If this alone clears 80/100, this IS the production identity method — no further tier needed. |
+| **2 — LoRA training** | FLUX LoRA trained on a curated dataset (§3, §5), optionally still stacked with Tier 1's zero-shot conditioning at generation time | ~€2–4 (dataset gen) + €0.20–1.50 (training run) | Only if Tier 1's Consistency Test score is below 80/100. |
+| **3 — Stacked / alternative methods** | LoRA + PuLID stacked (the original default), or whatever the highest-performing current identity-lock technique is at that point (re-research — don't assume today's answer) | Varies | Only if Tier 2 alone still doesn't clear 80/100. Should be rare if Tier 2's dataset/training was done well. |
+
+Each tier is measured with the exact same test (§6) and the exact same
+80/100 gate — the gate never moves, only the amount of engineering thrown at
+clearing it. Log every attempt (pass or fail) in
+`experiments/EXPERIMENT_LOG.md` with its tier, cost, and score, so influencer
+#2 starts from Tier 1 with real data on whether it's likely to be enough,
+instead of re-litigating this from scratch.
 
 ## 3. Dataset
 
@@ -135,7 +163,13 @@ means "visibly active", not hypersexualized or exaggerated by default.**
 Any generation that noticeably changes body proportions from the canonical
 reference fails QA regardless of how good the face looks.
 
-## 5. Training strategy
+## 5. Training strategy (Tier 2 — only if Tier 1 zero-shot didn't clear 80/100)
+
+**This entire section is conditional.** It only executes if the Tier 1
+zero-shot Consistency Test (§2a, §6) scored below 80/100. If Tier 1 passed,
+skip this section entirely — there is no LoRA, no dataset requirement, no
+training cost, and `generation_conditioning.lora_path` in the Identity Pack
+stays empty on purpose.
 
 **Method:** FLUX.1 LoRA, trained via `ai-toolkit` or `fluxgym` (both current,
 actively maintained FLUX-LoRA trainers as of this research pass — re-verify
@@ -157,8 +191,14 @@ at Phase 4 execution time since tooling here moves fast).
 
 ## 6. Character Consistency Test (Phase 5 gate)
 
+**Runs at whichever tier is currently being attempted** (§2a) — Tier 1
+zero-shot conditioning first (no dataset/training needed to run this test),
+Tier 2 LoRA (+ optionally still-stacked zero-shot conditioning) only if
+Tier 1 didn't clear the gate. Same test, same threshold, either way.
+
 Generate the character in these 15 conditions (per the brief's own list),
-using the trained LoRA + PuLID stack + varied ControlNet pose refs:
+using whichever tier's identity conditioning is currently being evaluated,
+plus varied ControlNet pose refs:
 
 1. selfie · 2. gym · 3. bikini/beach · 4. evening dress · 5. hoodie/casual ·
 6. restaurant · 7. airport · 8. professional/campaign-style photo ·
@@ -191,9 +231,14 @@ Score = 0.40 × FaceEmbeddingScore
   specifically as a check on the automated score, not a formality.
 
 **Threshold: 80/100 to pass.** Below that, do not proceed to Phase 6 —
-return to dataset (§3) or training (§5) and iterate. Document the failure
-and the fix in `experiments/EXPERIMENT_LOG.md` so we don't re-try the same
-failed configuration on influencer #2.
+escalate to the next tier of the complexity ladder (§2a): Tier 1 failing
+means build the dataset and train (§3, §5); Tier 2 failing means iterate on
+dataset/training first (more/better data before assuming the method itself
+is wrong) and only reach for Tier 3 if a well-executed Tier 2 genuinely
+isn't enough. Document every attempt — pass or fail, whichever tier — in
+`experiments/EXPERIMENT_LOG.md` so we don't re-try the same failed
+configuration on influencer #2, and so #2 can start at whichever tier
+actually worked for Sofía instead of re-litigating Tier 1 from zero.
 
 ## 7. AI-Artifact QA checklist
 

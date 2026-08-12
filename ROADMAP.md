@@ -4,9 +4,12 @@ Each phase must be **demonstrated working**, not just coded, before the next
 starts. "Definition of Done" (DoD) is objective and checkable.
 
 Every phase below is tagged against `CLAUDE.md` §5's build discipline:
-**[MUST]** = required before Sofía's launch, **[SHOULD]** = worth it once
-there's real engagement/revenue signal, **[SCALE]** = only once revenue
-justifies it. See `docs/business/GO_TO_MARKET.md` §MVP for the concrete
+**[MUST]** = required before Sofía's launch, **[CONDITIONAL]** = only
+executed if a cheaper tier measurably didn't clear the bar (see
+`IDENTITY_SYSTEM.md` §2a Progressive Identity Complexity Ladder — never
+assumed necessary by default), **[SHOULD]** = worth it once there's real
+engagement/revenue signal, **[SCALE]** = only once revenue justifies it. See
+`docs/business/GO_TO_MARKET.md` §Launch Gate for the concrete, objective
 launch checklist these map to, and `docs/PHASE2_RUNBOOK.md` for the exact,
 ready-to-run procedure for the phase immediately ahead. Commercial work
 (`docs/business/`) runs **in parallel** with the technical phases starting
@@ -50,17 +53,22 @@ generation, before any training investment.
   commands** — generate 30–60 zero-shot candidates from the Identity Pack
   description (serverless, ~€1–2 total, `scripts/generate_candidates.py`
   already written and tested), narrow to a shortlist, render the shortlist
-  in controlled variations each (frontal/3-4/profile, neutral/smile) with
-  PuLID-Flux-II, pick one.
+  in controlled variations (frontal/3-4/profile, neutral/smile) with
+  zero-shot identity conditioning, pick one.
 - DoD:
   - One canonical frontal reference image selected and stored at
     `influencers/<codename>/versions/v1/canonical_refs/canonical_front.png`
   - Matching 3/4, profile, neutral and smiling variants generated from the
-    same seed/identity conditioning (visually the same person by manual review)
+    same identity conditioning (visually the same person by manual review)
   - Cost logged in `experiments/EXPERIMENT_LOG.md`
+  - Immediately followed by a Tier 1 attempt at Phase 5 (below) — no pause
+    to "decide" whether to train, the test itself decides
 
-## Phase 3 — Identity dataset [MUST]
+## Phase 3 — Identity dataset [CONDITIONAL — Tier 2, only if Phase 5's Tier 1 attempt scores below 80]
 **Goal:** Build the small, clean, high-signal image set the LoRA will train on.
+- **Skipped entirely if the Tier 1 zero-shot Consistency Test (Phase 5)
+  already cleared 80/100** — see `IDENTITY_SYSTEM.md` §2a. Do not start this
+  phase pre-emptively "just in case."
 - Work: expand canonical refs into the full dataset per `IDENTITY_SYSTEM.md`
   §Dataset spec (count, poses, lighting, framing), score every image with the
   scoring rubric, discard failures.
@@ -70,8 +78,9 @@ generation, before any training investment.
   - Captions written for every kept image
   - Rejected-image log kept (what was excluded and why) for future learning
 
-## Phase 4 — Identity training [MUST]
+## Phase 4 — Identity training [CONDITIONAL — Tier 2, same trigger as Phase 3]
 **Goal:** Train the FLUX LoRA that becomes the durable identity backbone.
+- Same condition as Phase 3 — only reached if Tier 1 didn't clear the gate.
 - Work: run training on rented GPU per hyperparameters in `IDENTITY_SYSTEM.md`
   §Training, checkpoint every N steps, keep the checkpoint that scores best in
   Phase 5, not just the last one.
@@ -82,24 +91,39 @@ generation, before any training investment.
 
 ## Phase 5 — Consistency validation (gate — cannot be skipped) [MUST]
 **Goal:** Prove the character survives real production variety before
-building anything on top of it.
+building anything on top of it. **Runs at Tier 1 immediately after Phase 2**
+(zero-shot only, no dataset/training needed to attempt it) — Phases 3/4 only
+happen if this first attempt fails.
 - Work: run the 15-shot Character Consistency Test (`IDENTITY_SYSTEM.md`
-  §Consistency Test), compute the Identity Consistency Score.
+  §Consistency Test) using whichever tier is currently being evaluated,
+  compute the Identity Consistency Score.
 - DoD:
   - Score ≥ threshold (defined in `IDENTITY_SYSTEM.md`, currently 80/100)
   - All 15 test shots pass the AI-Artifact QA checklist
-  - `consistency_report.md` written for this version
-  - **If this gate fails: return to Phase 3/4, do not proceed.** No exceptions.
+  - `consistency_report.md` written for this version, noting which tier passed
+  - **If Tier 1 fails: proceed to Phase 3/4 (Tier 2), then re-run this exact
+    test.** If Tier 2 also fails: escalate per `IDENTITY_SYSTEM.md` §2a Tier 3.
+    Never proceed to Phase 6 without a passing score at some tier.
 
-## Phase 6 — Production image pipeline [MUST]
+## Phase 6 — Production image pipeline [MUST, scoped to the Launch Gate]
 **Goal:** Turn the validated identity into a repeatable generation pipeline —
-scene/outfit/pose/camera/lighting all controllable via the prompt engine.
+scene/outfit/pose/camera/lighting all controllable via the prompt engine. At
+MVP scope this only needs to produce the **20–30 images the Launch Gate
+requires** (`docs/business/GO_TO_MARKET.md` §Launch Gate), covering the
+photo styles the launch sequence actually uses — not the full style/location
+library exhaustively (that breadth gets used over time, post-launch).
 - Work: wire `engine/prompt_engine` to the cloud generation endpoint,
   implement pose ControlNet + garment conditioning (text + IP-Adapter image),
   implement location conditioning (`engine/locations`).
 - DoD: generate a themed batch (e.g. "gym", "travel: Barcelona", "restaurant
   dinner") on demand from parameters only, each batch passing QA + identity
-  score at the same bar as Phase 5
+  score at the same bar as Phase 5, reaching 20–30 approved images total
+
+## ✅ Launch Gate — see `docs/business/GO_TO_MARKET.md` §Launch Gate
+Once Phase 6 has produced the 20–30 approved images and Phase 9's account
+setup is done, check the Launch Gate table — if every item is ✅, **launch**,
+don't keep iterating. This is the single authoritative go/no-go checklist;
+not restated here to avoid two copies drifting out of sync.
 
 ## Phase 7 — Automated QA [SHOULD]
 **Goal:** Reduce manual review load without lowering the quality bar. Manual
@@ -165,8 +189,15 @@ on a calendar date.
 **Phase 1 is done.** Phase 2 (canonical face selection for Sofía) has its
 exact procedure written and its generation script built and tested
 (`docs/PHASE2_RUNBOOK.md`, `scripts/generate_candidates.py`) — ready to run
-in minutes. It is blocked on exactly one thing: creating and funding a
-fal.ai account (money + external account, owner's call, `CLAUDE.md` §3).
+in minutes, immediately followed by a Tier 1 zero-shot attempt at Phase 5
+(no dataset/training assumed necessary — `IDENTITY_SYSTEM.md` §2a). Phase
+3/4 (dataset + LoRA training) only happen if that attempt scores below
+80/100. It is blocked on exactly one thing: creating and funding a fal.ai
+account (money + external account, owner's call, `CLAUDE.md` §3).
+
+See `docs/business/GO_TO_MARKET.md` §Launch target for the aggressive-but-
+realistic timeline (~10–14 days if Tier 1 clears the gate, ~18–21 days if
+Tier 2/LoRA is needed) once execution resumes.
 
 **In parallel, not blocked on anything:** `docs/business/GO_TO_MARKET.md`
 Day 0 commercial prep (handle reservation needs Instagram/TikTok accounts —

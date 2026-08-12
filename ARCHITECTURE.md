@@ -31,7 +31,8 @@ below is reversible except where flagged 🔒. Research backing this is in
                          │  for training runs, then destroyed)        │
                          │                                            │
                          │  Production inference: FLUX.1-dev +        │
-                         │  identity LoRA + PuLID-Flux-II + ControlNet│
+                         │  identity conditioning (zero-shot first,   │
+                         │  LoRA only if needed — §2.2) + ControlNet  │
                          │  (RunPod pod for batches, or fal.ai/       │
                          │  Replicate serverless for one-offs —       │
                          │  zero idle cost)                            │
@@ -65,16 +66,16 @@ and nothing cloud-side stays on when idle.
 | **Impacto en identidad** | High — FLUX responds well to LoRA + PuLID conditioning stacked together, which is the core of our identity strategy (§2.2) |
 | **Impacto en Mac** | Low — dev variant never runs locally; klein/Schnell run locally at reduced res for previews only |
 
-### 2.2 Identity consistency method 🔒 (core decision)
+### 2.2 Identity consistency method 🔒 (core decision) — progressive, measured, not presumed
 
 | | |
 |---|---|
-| **Elegido** | **Hybrid: FLUX LoRA (trained per-influencer, rank 16–32) as the durable identity backbone + PuLID-Flux-II as a zero-shot identity reinforcement layer stacked on top, at moderate weight** |
-| **Por qué** | Research is consistent on the trade-off: PuLID/InstantID-style adapters give instant, training-free identity lock from 1 reference photo but drift under heavy lighting/pose changes and can look "pasted on"; a trained LoRA captures identity *and* body language *and* skin/hair texture as a reusable asset, at the cost of needing a curated dataset and a training run. Stacking both (LoRA for the durable "who this is", PuLID for an extra identity anchor per-generation) is the current best-practice pattern for long-lived characters — it directly optimizes our stated equation of identity × realism × flexibility, and the LoRA becomes the actual sellable/reusable IP for the influencer. |
-| **Alternativas descartadas** | PuLID/InstantID alone — faster to start (Phase 1 will actually use this, see 2.6), but insufficient for the "same person across 15+ wildly different scenes" requirement (§ IDENTITY_SYSTEM.md Consistency Test); textual-inversion/embeddings alone — too weak for facial geometry; DreamBooth full fine-tune — full-model fine-tuning is far more GPU-expensive and harder to keep flexible for outfit/pose variety than a LoRA, no accuracy benefit that justifies the cost here. |
-| **Coste aprox.** | One LoRA training run ≈ 30–90 min on a rented 24GB+ GPU ≈ €0.20–1.50 per training run (§ COSTS.md). Re-trained only on version bumps (v1→v2), not per image. |
-| **Impacto en identidad** | This *is* the identity system. |
-| **Impacto en Mac** | Zero — training and PuLID inference both run cloud-side. Mac only holds the resulting LoRA file (tens of MB) for reference/versioning. |
+| **Elegido** | **Progressive Identity Complexity Ladder** (full spec: `IDENTITY_SYSTEM.md` §2a). Tier 1: zero-shot identity conditioning (PuLID-Flux-II or current best equivalent) on the single canonical reference, no training — tried first, always. Tier 2: FLUX LoRA (rank 16–32) trained per-influencer, only if Tier 1's measured Identity Consistency Score is below 80/100. Tier 3: LoRA + zero-shot conditioning stacked (the original hybrid default), only if Tier 2 alone still isn't enough. |
+| **Por qué** | Originally this document presumed the LoRA+PuLID hybrid as the default from the start, reasoning by trade-off analysis alone. That's backwards: it commits to a dataset-build-and-training-run cost before confirming a cheaper method doesn't already clear the bar. Research shows PuLID/InstantID-class adapters can drift under heavy lighting/pose changes for *some* identities but not necessarily all — whether Sofía's specific canonical face needs LoRA-level reinforcement is an empirical question the 15-shot Consistency Test answers directly and cheaply (§IDENTITY_SYSTEM.md §6), not something to assume upfront. Escalating only when measured avoids paying LoRA's training cost when it wouldn't have changed the outcome. |
+| **Alternativas descartadas** | Committing to LoRA+PuLID hybrid as the fixed default (this doc's original position) — rejected as premature optimization; textual-inversion/embeddings alone — too weak for facial geometry, not worth testing as a tier; DreamBooth full fine-tune — far more GPU-expensive than LoRA with no accuracy benefit that justifies skipping straight past Tier 1/2; assuming Tier 1 will always be insufficient — rejected, that's exactly the assumption this ladder exists to test rather than presume. |
+| **Coste aprox.** | Tier 1 only: ~€1–3 (candidate sweep + full Consistency Test, no training). Tier 2 (if needed): + ~€2–4 dataset generation + €0.20–1.50 training run. Escalation is the exception path, not the budget baseline. |
+| **Impacto en identidad** | This *is* the identity system — but which tier ends up being "the identity system" for Sofía is now a measured outcome, documented in `experiments/EXPERIMENT_LOG.md`, not a fixed architectural commitment. |
+| **Impacto en Mac** | Zero at every tier — zero-shot inference, training (if reached), and stacking all run cloud-side. Mac only holds the resulting reference image and (if Tier 2 is reached) LoRA file for reference/versioning. |
 
 ### 2.3 Pose, composition & scene control
 
@@ -110,14 +111,14 @@ and nothing cloud-side stays on when idle.
 | **Impacto en identidad** | Indirect — this is where consistency is *measured*, not created |
 | **Impacto en Mac** | Low — largest model in this list is ~300MB, runs on CPU |
 
-### 2.6 Zero-shot exploration for canonical face selection (Phase 1–2 only)
+### 2.6 Zero-shot candidate generation (Phase 2) — and potentially Tier 1's permanent method (§2.2)
 
 | | |
 |---|---|
-| **Elegido** | PuLID-Flux-II (or InstantID as fallback) used stand-alone, no training, to generate and compare dozens of candidate faces cheaply before committing to one identity |
-| **Por qué** | Training a LoRA on a face that doesn't survive first contact with variety would waste the one expensive step in the pipeline. Zero-shot adapters let us throw away 95% of candidates for free (serverless, pay-per-image) before any dataset/training investment. |
-| **Coste aprox.** | €0.01–0.04/image via fal.ai/Replicate serverless, no pod rental needed |
-| **Impacto en identidad** | This is how the canonical identity gets chosen in the first place |
+| **Elegido** | Plain FLUX-schnell text-to-image (no identity conditioning — there's no reference yet) to generate and compare dozens of candidate faces cheaply; once one is chosen, PuLID-Flux-II (or current best equivalent) conditions on it for controlled variations and the Consistency Test. **This is no longer scoped to "exploration only"** — if it clears the 80/100 gate, it stays the production identity method (§2.2 Tier 1), not just a stepping stone to training. |
+| **Por qué** | Generating a wide, cheap candidate pool before committing avoids wasting the (possibly unnecessary) LoRA training step on a face that doesn't survive first contact with variety. Whether zero-shot conditioning alone is *also* sufficient for production is exactly what the Consistency Test measures immediately after — no separate decision needed. |
+| **Coste aprox.** | €0.01–0.04/image via fal.ai serverless, no pod rental needed, at every stage this method is used (exploration or production) |
+| **Impacto en identidad** | This is how the canonical identity gets chosen, and — if it clears the gate — how it stays generated in production, with zero training cost |
 | **Impacto en Mac** | Zero |
 
 ### 2.7 Data & metadata storage

@@ -39,15 +39,22 @@ spending increases are earned by revenue, not decided by enthusiasm:
 
 ## Stage 1 cost breakdown (target: <€30/mo, realistically <€10/mo)
 
+Phase 3/4 are **conditional** — only spent if Tier 1 zero-shot doesn't clear
+the Identity Consistency Score gate (`IDENTITY_SYSTEM.md` §2a). Never assume
+that spend upfront.
+
 | Item | Cost | Notes |
 |---|---|---|
-| Zero-shot exploration (Phase 2) | ~€1–2 one-time | ~40 candidate images via fal.ai/Replicate serverless @ €0.02–0.04/img |
-| Dataset generation (Phase 3) | ~€1–2 one-time | ~30 controlled-variation images |
-| LoRA training (Phase 4, per version) | €0.20–1.50 | 30–90 min on rented RTX4090/A6000 @ ~€0.32–0.35/hr |
+| Candidate sweep + Tier 1 consistency test (Phase 2, always) | ~€2–3 one-time | ~40 candidates + shortlist checks + full 15-shot test, all zero-shot, no training — `docs/PHASE2_RUNBOOK.md` |
+| Dataset generation (Phase 3, **conditional**) | ~€1–2 one-time | Only if Tier 1 scored below 80/100 |
+| LoRA training (Phase 4, **conditional**, per version) | €0.20–1.50 | Only if Tier 1 scored below 80/100; 30–90 min on rented RTX4090/A6000 @ ~€0.32–0.35/hr |
 | Production generation (Phase 6+) | €0.01–0.03/image | RunPod batch or serverless, depends on volume |
 | Local tooling | €0 | Runs on hardware already owned |
 | Cloud backup storage | €0 | Free tier (R2 10GB / B2 10GB) sufficient at this scale |
-| **Total, first month with one influencer through Phase 6** | **≈ €5–15** | Leaves headroom under the €30 ceiling for iteration/re-training |
+| **Total, optimistic path (Tier 1 sufficient)** | **≈ €3–8** | Phase 2 + Phase 6 launch batch only |
+| **Total, conservative path (Tier 2 needed)** | **≈ €5–15** | Adds Phase 3/4 on top |
+
+Either path leaves comfortable headroom under the €30 ceiling.
 
 ## Unit economics — track these, not vanity metrics
 

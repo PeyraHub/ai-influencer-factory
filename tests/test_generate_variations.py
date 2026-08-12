@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from generate_variations import ALL_CONSISTENCY_SHOTS, build_shot_requests, estimate_cost
@@ -47,6 +49,8 @@ def test_build_shot_requests_all_shots_produce_prompts():
         assert bundle.positive_prompt  # every shot produces a non-empty prompt
 
 
-def test_estimate_cost_fifteen_shots_is_cheap():
+def test_estimate_cost_matches_verified_fal_pricing():
+    # fal-ai/flux-pulid: $0.0333/megapixel, 1 billed MP/image at 768x1024
+    # (verified 2026-08) -> 15 * 0.0333 = 0.4995.
     cost = estimate_cost(15)
-    assert 0.2 <= cost <= 1.0
+    assert cost == pytest.approx(0.4995)

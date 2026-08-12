@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from generate_candidates import build_candidate_requests, estimate_cost
@@ -40,7 +42,17 @@ def test_build_candidate_requests_rejects_zero_count():
         pass
 
 
-def test_estimate_cost_matches_costs_md_ballpark():
-    # COSTS.md quotes ~EUR 1-2 for ~40 zero-shot exploration images.
+def test_estimate_cost_matches_verified_fal_pricing():
+    # fal-ai/flux/schnell: $0.003/megapixel, 1 billed MP/image at 768x1024
+    # (verified 2026-08, see module docstring/comments) -> 40 * 0.003 = 0.12.
     cost = estimate_cost(40)
-    assert 0.5 <= cost <= 2.0
+    assert cost == pytest.approx(0.12)
+
+
+def test_estimate_cost_full_tier1_attempt_stays_well_under_cap():
+    # Sweep (40) + shortlist checks (5 candidates x 3 shots) + full 15-shot
+    # test should total well under the EUR 3 Tier 1 cap (engine/budget_guard.py).
+    from generate_variations import estimate_cost as variations_cost
+
+    total = estimate_cost(40) + variations_cost(5 * 3) + variations_cost(15)
+    assert total < 3.0

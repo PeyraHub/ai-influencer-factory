@@ -45,13 +45,13 @@ that spend upfront.
 
 | Item | Cost | Notes |
 |---|---|---|
-| Candidate sweep + Tier 1 consistency test (Phase 2, always) | ~€2–3 one-time | ~40 candidates + shortlist checks + full 15-shot test, all zero-shot, no training — `docs/PHASE2_RUNBOOK.md` |
+| Candidate sweep + Tier 1 consistency test (Phase 2, always) | **≈ €1.12 verified** (hard-capped at €3 — `engine/budget_guard.py`) | 40 candidates (`fal-ai/flux/schnell` @ $0.003/img) + shortlist checks + full 15-shot test (`fal-ai/flux-pulid` @ $0.0333/img), all zero-shot, no training — exact pricing verified against fal.ai docs 2026-08, see `docs/PHASE2_RUNBOOK.md` |
 | Dataset generation (Phase 3, **conditional**) | ~€1–2 one-time | Only if Tier 1 scored below 80/100 |
 | LoRA training (Phase 4, **conditional**, per version) | €0.20–1.50 | Only if Tier 1 scored below 80/100; 30–90 min on rented RTX4090/A6000 @ ~€0.32–0.35/hr |
 | Production generation (Phase 6+) | €0.01–0.03/image | RunPod batch or serverless, depends on volume |
 | Local tooling | €0 | Runs on hardware already owned |
 | Cloud backup storage | €0 | Free tier (R2 10GB / B2 10GB) sufficient at this scale |
-| **Total, optimistic path (Tier 1 sufficient)** | **≈ €3–8** | Phase 2 + Phase 6 launch batch only |
+| **Total, optimistic path (Tier 1 sufficient)** | **≈ €2–7** | Phase 2 (~€1.12) + Phase 6 launch batch only |
 | **Total, conservative path (Tier 2 needed)** | **≈ €5–15** | Adds Phase 3/4 on top |
 
 Either path leaves comfortable headroom under the €30 ceiling.

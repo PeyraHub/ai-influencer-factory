@@ -35,28 +35,62 @@ low-volume, high-iteration — exactly what serverless is for
 ### 1. Account + credential (🔒 the actual blocker — owner action)
 - Create a fal.ai account at fal.ai, attach a payment method.
 - Generate an API key from the fal.ai dashboard.
-- Put it in `.env` (never commit): `FAL_API_KEY=...`
-- Estimated spend through a full Tier 1 attempt (steps 2–7 below, candidate
-  sweep + shortlist checks + full 15-shot test): **~€2–3 total** — and if
-  Tier 1 clears the gate, that's the *entire* identity cost, no training
-  spend at all. Comfortably inside the €0–30/mo budget either way.
+- Put it in `.env` (never commit): `FAL_KEY=...` (this is the exact
+  environment variable name the fal.ai Python client reads automatically —
+  verified against current fal.ai docs, not `FAL_API_KEY`)
+- **Hard spend cap: EUR 3.00 for this entire Tier 1 attempt**, enforced in
+  code (`engine/budget_guard.py`), not just documentation. Both generation
+  scripts reserve their estimated cost against a shared
+  `influencers/sofia_01/versions/v1/.spend_ledger.json` ledger (label
+  `"tier1"`) *before* calling fal.ai, and refuse to proceed once cumulative
+  reserved spend would cross the cap — cumulative across every invocation of
+  either script, not reset per run. Exceeding it requires passing
+  `--i-authorize-overage` explicitly, which is a deliberate owner decision,
+  never a default.
+- **Verified real cost** (fal.ai pricing docs, checked 2026-08; both scripts
+  request an explicit 768×1024 / 0.786 MP image, billed as 1 MP rounded up):
+  - `fal-ai/flux/schnell` (candidate sweep): **$0.003/image** → 40 images ≈ **€0.12**
+  - `fal-ai/flux-pulid` (shortlist checks + full test): **$0.0333/image**
+  - Full Tier 1 attempt (40 candidates + 5×3 shortlist shots + 15-shot test):
+    **≈ €1.12 total** — well under the €3 cap, leaving headroom for a re-run
+    if a batch needs redoing. (Cost tracked as EUR 1:1 with USD, a
+    deliberately conservative simplification — see `engine/budget_guard.py`.)
+  - If Tier 1 clears the gate, **€1.12 is the entire identity cost** — no
+    training spend at all.
 
-### 2. Wide candidate sweep (already scripted — `scripts/generate_candidates.py`)
+### 2. Sanity-check with 1–2 images FIRST, then the full sweep (`scripts/generate_candidates.py`)
 ```bash
 source .venv/bin/activate
 pip install -e ".[generation]"     # adds fal-client, only needed for this step
-python scripts/generate_candidates.py --identity influencers/sofia_01/identity_pack.yaml --count 40
+
+# MANDATORY first command — not optional. Confirms the API key, the fal.ai
+# call, and the download path all work before spending on the full batch.
+python scripts/generate_candidates.py --identity influencers/sofia_01/identity_pack.yaml --count 2
+# Inspect influencers/sofia_01/versions/v1/candidates/ — 2 images, look sane? Then:
+
+python scripts/generate_candidates.py --identity influencers/sofia_01/identity_pack.yaml --count 38 --seed-start 2
 ```
 - Uses FLUX.1-schnell (cheapest, fastest FLUX variant) via fal.ai for the
   wide sweep — quality is sufficient for face/shape selection at this stage;
-  the final chosen candidate gets re-rendered at higher quality in step 3.
+  the final chosen candidate gets re-rendered at higher quality in step 4.
 - Pulls `descriptor_fragments` straight from the Identity Pack via
   `engine.prompt_engine`, varies `photo_style` (iphone_selfie,
   professional_campaign, mirror_selfie) and seed across the batch for real
   variety, not 40 near-duplicates.
 - Saves images + a metadata JSON (seed, style, prompt, cost) to
   `influencers/sofia_01/versions/v1/candidates/` (gitignored, like all
-  generated media).
+  generated media). The 2-image test and the 38-image follow-up both write
+  to the same `.spend_ledger.json` — the test's cost still counts.
+
+**Execution protocol once the key is available:** run the 2-image test: if
+both images download successfully and look like reasonable renders of the
+Identity Pack description (no API errors, no garbage output), proceed
+autonomously through the rest of this runbook — the remaining 38 candidates,
+all shortlist checks, the full 15-shot test — without asking again at each
+step. Stop only at step 3 (picking favorites from the candidate sheet) and
+step 5 (final candidate pick), which are the genuinely subjective calls this
+runbook can't make. If the 2-image test fails (API error, no output, ledger
+cap issue), stop and report that specific failure rather than retrying blindly.
 
 ### 3. Human selection (your call — genuinely subjective, not automatable)
 - Review the 40-image contact sheet.
@@ -70,7 +104,7 @@ python scripts/generate_variations.py --identity influencers/sofia_01/identity_p
     --reference influencers/sofia_01/versions/v1/candidates/<chosen_file>.png \
     --shots selfie,professional,smiling
 ```
-- Run once per shortlisted candidate (3–5 times, ~€0.09 each — trivial).
+- Run once per shortlisted candidate (3–5 times, ~€0.10 each — trivial).
 - Uses `fal-ai/flux-pulid` (zero-shot identity conditioning, no training) to
   check the face survives 3 quick angle/expression changes before spending
   on the full test. Eliminates obviously-weak candidates cheaply.
@@ -91,7 +125,7 @@ python scripts/generate_variations.py --identity influencers/sofia_01/identity_p
     --shots all \
     --out-dir influencers/sofia_01/versions/v1/consistency_test
 ```
-- Generates all 15 conditions from `IDENTITY_SYSTEM.md` §6, ~€0.45 total,
+- Generates all 15 conditions from `IDENTITY_SYSTEM.md` §6, ~€0.50 total,
   still zero-shot, still no training.
 - Also manually review these 15 images against the AI-Artifact QA checklist
   (`IDENTITY_SYSTEM.md` §7) — the Consistency Score alone isn't the whole gate.

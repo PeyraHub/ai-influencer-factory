@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase 2, steps 4 & 7 — zero-shot identity-conditioned variations.
+"""Phase 2, steps 4 & 6 — zero-shot identity-conditioned variations.
 
 Two uses of the same script, per docs/PHASE2_RUNBOOK.md:
   (a) cheap shortlist check — a handful of shots per shortlisted candidate,
@@ -22,6 +22,12 @@ Usage:
         --identity influencers/sofia_01/identity_pack.yaml \
         --reference influencers/sofia_01/versions/v1/canonical_refs/canonical_front.png \
         --shots all --out-dir influencers/sofia_01/versions/v1/consistency_test  # full test
+
+Spend is capped: see engine/budget_guard.py. Shares the same "tier1" ledger
+label (and file) as generate_candidates.py, so the whole Tier 1 attempt
+(candidate sweep + shortlist checks + full test) is capped together —
+default EUR 3.00 (docs/PHASE2_RUNBOOK.md), override with --cap-eur, exceed
+only with --i-authorize-overage after explicit owner approval.
 """
 from __future__ import annotations
 
@@ -32,10 +38,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from engine.budget_guard import BudgetCapExceeded, Ledger, DEFAULT_CAP_EUR
 from engine.prompt_engine import GenerationRequest, build_prompt
 from engine.prompt_engine.schema import IdentityPack
 
-FLUX_PULID_PRICE_PER_IMAGE = 0.03  # EUR, ~$0.0333/megapixel on fal.ai — see docs/PHASE2_RUNBOOK.md
+# fal-ai/flux-pulid: $0.0333 / megapixel, billed rounded up to the nearest
+# megapixel (fal.ai pricing docs, verified 2026-08). Same explicit-resolution
+# reasoning as generate_candidates.py — see that file's comment for why.
+IMAGE_WIDTH = 768
+IMAGE_HEIGHT = 1024
+BILLED_MEGAPIXELS_PER_IMAGE = 1  # ceil(768*1024 / 1_000_000) = ceil(0.786) = 1
+FLUX_PULID_PRICE_PER_MEGAPIXEL_EUR = 0.0333
+FLUX_PULID_PRICE_PER_IMAGE = round(BILLED_MEGAPIXELS_PER_IMAGE * FLUX_PULID_PRICE_PER_MEGAPIXEL_EUR, 4)
 
 # The 15 conditions of the Character Consistency Test, IDENTITY_SYSTEM.md §6,
 # each mapped to a (scene, photo_style) pair the prompt engine understands.
@@ -84,11 +98,17 @@ def build_shot_requests(
 
 
 def estimate_cost(shot_count: int, price_per_image: float = FLUX_PULID_PRICE_PER_IMAGE) -> float:
-    return round(shot_count * price_per_image, 2)
+    return round(shot_count * price_per_image, 4)
 
 
 def generate_and_save(
-    requests: list[tuple[str, GenerationRequest]], reference_path: str, api_key: str, out_dir: Path
+    requests: list[tuple[str, GenerationRequest]],
+    reference_path: str,
+    api_key: str,
+    out_dir: Path,
+    ledger: Ledger,
+    cap_eur: float = DEFAULT_CAP_EUR,
+    authorize_overage: bool = False,
 ) -> list[dict]:
     """Network I/O — requires the 'generation' extra (fal-client) and a real API key."""
     try:
@@ -108,13 +128,15 @@ def generate_and_save(
     results = []
 
     for shot_key, request in requests:
+        ledger.reserve(FLUX_PULID_PRICE_PER_IMAGE, cap_eur=cap_eur, authorize_overage=authorize_overage)
+
         bundle = build_prompt(request)
         handle = fal_client.submit(
             "fal-ai/flux-pulid",
             arguments={
                 "prompt": bundle.positive_prompt,
                 "reference_image_url": reference_url,
-                "image_size": "portrait_4_3",
+                "image_size": {"width": IMAGE_WIDTH, "height": IMAGE_HEIGHT},
             },
         )
         result = handle.get()
@@ -138,7 +160,7 @@ def generate_and_save(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--identity", required=True, type=Path)
     parser.add_argument("--reference", required=True, help="Path to the candidate/canonical reference image")
     parser.add_argument(
@@ -146,6 +168,12 @@ def main() -> None:
     )
     parser.add_argument("--out-dir", type=Path, default=None)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--cap-eur", type=float, default=DEFAULT_CAP_EUR, help="Hard spend cap for the 'tier1' ledger label")
+    parser.add_argument(
+        "--i-authorize-overage",
+        action="store_true",
+        help="Explicit owner authorization to exceed --cap-eur. Do not pass this by default.",
+    )
     args = parser.parse_args()
 
     identity = IdentityPack.from_yaml(args.identity)
@@ -165,16 +193,26 @@ def main() -> None:
     from dotenv import load_dotenv
 
     load_dotenv()
-    api_key = os.environ.get("FAL_API_KEY")
+    api_key = os.environ.get("FAL_KEY")
     if not api_key:
-        print("ERROR: FAL_API_KEY not set. Copy .env.example to .env and fill it in.", file=sys.stderr)
+        print("ERROR: FAL_KEY not set. Copy .env.example to .env and fill it in.", file=sys.stderr)
         sys.exit(1)
 
     out_dir = args.out_dir or (
         Path("influencers") / identity.codename.lower() / "versions" / "v1" / "variations"
     )
-    results = generate_and_save(requests, args.reference, api_key, out_dir)
-    print(f"Saved {len(results)} shots to {out_dir}")
+    ledger = Ledger(path=out_dir.parent / ".spend_ledger.json", label="tier1")
+
+    try:
+        results = generate_and_save(
+            requests, args.reference, api_key, out_dir, ledger, cap_eur=args.cap_eur,
+            authorize_overage=args.i_authorize_overage,
+        )
+    except BudgetCapExceeded as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Saved {len(results)} shots to {out_dir} (tier1 ledger total: EUR {ledger.spent():.2f})")
 
 
 if __name__ == "__main__":

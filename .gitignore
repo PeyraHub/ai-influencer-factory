@@ -10,8 +10,10 @@ __pycache__/
 build/
 dist/
 
-# Generated media / model weights / datasets — never committed, only tracked
-# via metadata + EXPERIMENT_LOG.md. Keep .gitkeep placeholders tracked.
+# Generated media / model weights / datasets / per-image metadata — never
+# committed, only tracked via EXPERIMENT_LOG.md (and, for filled-in scores,
+# manual_consistency_scores.yaml once it has real values). Keep .gitkeep
+# placeholders and the _template/ schema files tracked.
 influencers/**/versions/**/*.png
 influencers/**/versions/**/*.jpg
 influencers/**/versions/**/*.jpeg
@@ -19,6 +21,9 @@ influencers/**/versions/**/*.webp
 influencers/**/versions/**/*.safetensors
 influencers/**/versions/**/*.ckpt
 influencers/**/versions/**/*.pt
+influencers/**/versions/**/*.json
+influencers/**/versions/**/manual_consistency_scores.yaml
+influencers/**/versions/**/.spend_ledger.json
 content/**/*.png
 content/**/*.jpg
 content/**/*.jpeg

@@ -2,6 +2,38 @@
 
 All notable changes to this project. Dated, reverse-chronological.
 
+## 2026-08-12 — Fix FAL_KEY, verify real fal.ai pricing, hard spend cap
+
+- Fixed the environment variable name across the whole repo:
+  `FAL_API_KEY` → `FAL_KEY`, verified against current fal.ai client docs
+  (the fal Python client reads `FAL_KEY` automatically). Fixed in both
+  scripts, `.env.example`, and `docs/PHASE2_RUNBOOK.md`.
+- Verified the exact model IDs and pricing actually used for Tier 1, instead
+  of the earlier ballpark estimate: `fal-ai/flux/schnell` at $0.003/megapixel
+  (candidate sweep) and `fal-ai/flux-pulid` at $0.0333/megapixel (shortlist
+  checks + full Consistency Test), both billed rounded up to the nearest
+  megapixel. Both scripts now request an explicit 768×1024 (0.786 MP) image
+  size instead of a size-preset string, so the cost estimate is exact, not a
+  guess at what a preset resolves to. Recomputed real Tier 1 total: **≈€1.12**
+  for the full candidate sweep + shortlist checks + 15-shot test (well under
+  the earlier €2–4 estimate) — `COSTS.md` and `docs/PHASE2_RUNBOOK.md` updated.
+- Added `engine/budget_guard.py`: a hard spend cap enforced in code, not just
+  documentation. Both generation scripts now reserve their estimated cost
+  against a shared per-influencer-version `.spend_ledger.json` (label
+  `"tier1"`) **before** calling fal.ai, cumulative across every invocation of
+  either script, and refuse to proceed past **€3.00** without an explicit
+  `--i-authorize-overage` flag. 12 new tests, including integration tests
+  with a mocked `fal_client` proving the cap stops execution before any
+  network call is attempted.
+- Made the 1–2 image sanity check the mandatory first command in
+  `docs/PHASE2_RUNBOOK.md` step 2 (not just a suggestion), with an explicit
+  execution protocol: if the mini-test succeeds, proceed autonomously through
+  the rest of Phase 2 — full candidate sweep, shortlist checks, full
+  Consistency Test — stopping only for the genuinely subjective candidate
+  picks, per the owner's standing authorization for this sequence.
+- 51 passing tests (was 39). Still zero images generated, zero money spent —
+  same single real blocker: funding a fal.ai account.
+
 ## 2026-08-12 — Progressive Identity Complexity Ladder + Launch Gate
 
 - Removed the standing assumption that identity consistency requires LoRA

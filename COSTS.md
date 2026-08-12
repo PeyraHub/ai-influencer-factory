@@ -13,6 +13,30 @@
 trigger above. Cost decisions are logged in `experiments/EXPERIMENT_LOG.md`
 so we can see the €/output trend, not just guess at it.
 
+## Reinvestment policy
+
+Formalizes the "Unlocked when" column above into an explicit rule, so
+spending increases are earned by revenue, not decided by enthusiasm:
+
+1. **Measure against the Base scenario, never Aggressive** — `docs/business/REVENUE_MODEL.md`'s
+   Base-case revenue is the only column that gates a stage change. A single
+   good week or one Aggressive-scenario month is not a trigger.
+2. **Two consecutive months**, not one — a stage change requires the
+   previous stage's revenue trigger to hold for 2 consecutive months, to
+   filter out one-off spikes (a single brand deal, a viral fluke).
+3. **Reinvest a fraction, not all of it** — as a starting rule, reinvest
+   roughly **50% of net profit above the current stage's cost ceiling** into
+   the next stage's spend, bank the rest; revisit this split once there's
+   real profit data to optimize against instead of guessing.
+4. **Spend increases still need sign-off** — moving to a new stage's ceiling
+   is a money decision (`CLAUDE.md` §3.2) even when the revenue trigger is
+   met; this policy defines *when it's justified*, not a standing
+   pre-approval to spend without asking.
+5. **Never spend ahead of the identity/QA gates** — more budget never
+   substitutes for the Phase 5 Identity Consistency Score gate
+   (`IDENTITY_SYSTEM.md` §6) or the AI-Artifact QA checklist (§7). If
+   acceptance rate is low, the fix is pipeline quality, not more GPU spend.
+
 ## Stage 1 cost breakdown (target: <€30/mo, realistically <€10/mo)
 
 | Item | Cost | Notes |

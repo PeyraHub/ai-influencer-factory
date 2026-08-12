@@ -19,6 +19,11 @@ identity = [
     "onnxruntime>=1.17",
     "opencv-python-headless>=4.9",
 ]
+# Only needed to actually run scripts/generate_candidates.py (Phase 2) — see
+# docs/PHASE2_RUNBOOK.md. Not part of the core install.
+generation = [
+    "fal-client>=0.4",
+]
 dev = [
     "pytest>=8.0",
 ]

@@ -23,26 +23,32 @@ subject to: cost(stage 1) ≤ €30/mo, runs on 16GB unified memory.
 (`influencers/sofia_01/`), has a finished Identity Pack + Personality Bible:
 Mediterranean archetype, mahogany wavy hair, honey-hazel eyes, natural toned
 fitness build, light freckles, clean-girl minimalist style, Barcelona-based
-fitness/lifestyle persona. No face has been generated yet — that's Phase 2,
-currently blocked on a cloud-GPU-account decision (money/external account,
-owner's call, not mine to make). See `ROADMAP.md` for the full phase plan and
-`docs/research/stack_research_2026.md` for the technology comparison behind
-every architecture decision.
+fitness/lifestyle persona. No face has been generated yet. Phase 2 (canonical
+face selection) has its exact procedure and generation script ready to run
+(`docs/PHASE2_RUNBOOK.md`), blocked only on funding a fal.ai account
+(money/external account, owner's call). See `ROADMAP.md` for the full phase
+plan, `CLAUDE.md` for the standing operating rules this project runs under,
+and `docs/business/` for the commercial plan running in parallel with the
+technical build.
 
 ## Repo map
 
 ```
 ai-influencer-factory/
+├── CLAUDE.md                    Standing operating rules — autonomy, MVP discipline, budget, non-negotiables
 ├── README.md                    You are here
 ├── ARCHITECTURE.md              System design + every "option A vs B" decision, justified
-├── ROADMAP.md                   Phase 0–12 plan with Definition of Done per phase
-├── COSTS.md                     Budget stages, unit economics, cost formulas
+├── ROADMAP.md                   Phase 0–12 plan, MUST/SHOULD/SCALE-tagged, with Definition of Done per phase
+├── COSTS.md                     Budget stages, unit economics, cost formulas, reinvestment policy
 ├── IDENTITY_SYSTEM.md           Identity Pack spec, dataset rules, training strategy,
 │                                 consistency test, AI-artifact QA checklist
 ├── CONTENT_PIPELINE.md          Prompt engine, photo-style library, locations,
 │                                 clothing pipeline, content engine, publishing
 ├── CHANGELOG.md                 Chronological log of real changes
-├── docs/research/               Dated technology research snapshots (sources cited)
+├── docs/
+│   ├── research/                 Dated technology research snapshots (sources cited)
+│   ├── PHASE2_RUNBOOK.md         Exact, ready-to-run procedure for the next milestone
+│   └── business/                 GO_TO_MARKET.md · REVENUE_MODEL.md · WEEKLY_OPS.md — the commercial plan
 ├── influencers/
 │   ├── _template/                Blank schema to copy for each new influencer
 │   └── sofia_01/                 First influencer — Sofía, fitness + lifestyle, Barcelona
@@ -54,9 +60,10 @@ ai-influencer-factory/
 │   ├── identity/                Consistency scoring + AI-artifact QA checks
 │   ├── styles/                  Reusable photography style library (iPhone selfie, gym, etc.)
 │   └── locations/               Reusable location reference library
+├── scripts/                     Ready-to-run phase scripts (e.g. generate_candidates.py, Phase 2)
 ├── content/                     calendar/ · captions/ · metrics/ (generated content lives outside git — see .gitignore)
-├── experiments/EXPERIMENT_LOG.md  Every training/generation experiment, so we never repeat a failure
-└── tests/                       pytest suite for engine code
+├── experiments/EXPERIMENT_LOG.md  Every experiment + success/kill criteria, so we never repeat a failure
+└── tests/                       pytest suite for engine code and scripts
 ```
 
 ## Principles this repo enforces
@@ -76,13 +83,17 @@ ai-influencer-factory/
 5. **No real-person likeness.** Every influencer is an original identity. See
    `IDENTITY_SYSTEM.md` §"Ethics & platform compliance".
 
-## Getting started (once Phase 1 begins)
+## Getting started
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env   # fill in API keys — never commit this file
-pytest                 # engine/ unit tests (prompt engine, QA heuristics)
+pytest                 # engine/ + scripts/ unit tests (prompt engine, QA heuristics)
+
+# Only needed to actually run Phase 2 generation (docs/PHASE2_RUNBOOK.md):
+pip install -e ".[generation]"
+python scripts/generate_candidates.py --identity influencers/sofia_01/identity_pack.yaml --count 6 --dry-run
 ```
 
 ## Where things stand / what's next

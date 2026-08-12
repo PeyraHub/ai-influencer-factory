@@ -2,6 +2,44 @@
 
 All notable changes to this project. Dated, reverse-chronological.
 
+## 2026-08-12 — Execution mode: permanent operating rules + commercial plan + Phase 2 runbook
+
+- Added `CLAUDE.md`: permanent, session-surviving operating rules —
+  maximum autonomy, minimum interruptions, explicit stop conditions (money,
+  external accounts, credentials, irreversible actions, legal/platform risk,
+  real technical blockers), MVP-first build discipline
+  (MUST/SHOULD/SCALE-LATER), and the non-negotiables (identity consistency
+  gate, no real-person likeness, Sofía-first).
+- Added the commercial plan under `docs/business/`, running in parallel with
+  the technical build from Day 0, not after it:
+  - `GO_TO_MARKET.md` — MVP launch checklist, Day 0/7/14/30/60/90 plan,
+    launch sequencing for the first grid posts, content pillars
+    (reach/engagement/trust/conversion/retention), virality-hypothesis
+    framework, competitive-benchmarking method, multi-influencer trigger.
+  - `REVENUE_MODEL.md` — revenue streams (Fanvue, brand deals, affiliate,
+    digital products, licensing), unit economics, conservative/base/aggressive
+    scenarios at 30d/90d/6mo/12mo, milestone reverse-engineering from first
+    revenue through €100k/mo, all assumptions explicitly labeled as
+    assumptions to verify against real data, not forecasts.
+  - `WEEKLY_OPS.md` — recurring BUILD/CREATE/PUBLISH/GROW/MONETIZE/MEASURE
+    template and the North Star Metrics set.
+- Added `docs/PHASE2_RUNBOOK.md` — the exact, ready-to-execute procedure to
+  go from Sofía's Identity Pack to a locked canonical face at minimum cost,
+  and `scripts/generate_candidates.py` — the actual Phase 2 zero-shot
+  candidate-sweep script (fal.ai + FLUX-schnell, cost estimate ~€1-2 for 40
+  candidates), fully built and unit-tested (dry-run verified) but requiring
+  a funded fal.ai account to actually generate images.
+- Updated `ROADMAP.md` (MUST/SHOULD/SCALE tags per phase, Phase 2 now points
+  at the runbook), `COSTS.md` (added explicit Reinvestment policy section),
+  `experiments/EXPERIMENT_LOG.md` (entries now require success/kill criteria
+  defined before running), `README.md` (repo map, status, getting-started
+  updated to match).
+- 29 passing tests (added `tests/test_generate_candidates.py` for the new
+  script's pure request-building logic).
+- Still zero images generated, zero money spent, zero external accounts
+  created. Single real blocker for Phase 2 execution: funding a fal.ai
+  account (money + external account, owner's call, `CLAUDE.md` §3).
+
 ## 2026-08-11 — Phase 1: Identity design (Sofía / SOFIA_01)
 
 - Ran the creative decision sequence for the first influencer (fitness +
